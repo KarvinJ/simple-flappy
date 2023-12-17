@@ -10,13 +10,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 import knight.arkham.Space;
-import knight.arkham.helpers.GameContactListener;
 import knight.arkham.objects.*;
 import java.util.Iterator;
 import static knight.arkham.helpers.Constants.*;
@@ -25,8 +22,6 @@ public class GameScreen extends ScreenAdapter {
     private final Space game;
     private final OrthographicCamera camera;
     public SpriteBatch batch;
-    private final World world;
-    private final Box2DDebugRenderer debugRenderer;
     private final Texture background;
     private final Player player;
     private final Array<Pipe> pipes;
@@ -39,8 +34,6 @@ public class GameScreen extends ScreenAdapter {
     private final Texture startGame;
     private int score;
     private long lastPipeSpawnTime;
-    private float accumulator;
-    private final float TIME_STEP;
     private float stateTimer;
 
     public GameScreen() {
@@ -51,21 +44,14 @@ public class GameScreen extends ScreenAdapter {
 
         camera = game.camera;
 
-        TIME_STEP = 1/240f;
-
         batch = new SpriteBatch();
 
-        world = new World(new Vector2(0, -20), true);
-        world.setContactListener(new GameContactListener());
-
-        debugRenderer = new Box2DDebugRenderer();
-
-        player = new Player(new Vector2(game.screenWidth/2f, game.screenHeight/2f), world);
+        player = new Player(new Vector2(game.screenWidth / 2f, game.screenHeight / 2f));
 
         pipes = new Array<>();
 
-        floor = new Floor(new Rectangle(game.screenWidth/2f, 40, game.screenWidth, 80), world);
-        floor2 = new Floor(new Rectangle(game.screenWidth + 240, 40, game.screenWidth, 80), world);
+        floor = new Floor(new Rectangle(game.screenWidth/2f, 40, game.screenWidth, 80));
+        floor2 = new Floor(new Rectangle(game.screenWidth + 240, 40, game.screenWidth, 80));
 
         background = new Texture("images/background-day.png");
         startGame = new Texture("images/message.png");
@@ -76,9 +62,7 @@ public class GameScreen extends ScreenAdapter {
         scoreNumbersUnits = numbersAtlas.findRegion(String.valueOf(score));
 
         scoreBounds = new Rectangle(
-            FULL_SCREEN_WIDTH / 2f, 500 / PIXELS_PER_METER,
-            scoreNumbers.getRegionWidth() / PIXELS_PER_METER,
-            scoreNumbers.getRegionHeight() / PIXELS_PER_METER
+            FULL_SCREEN_WIDTH / 2f, 500, scoreNumbers.getRegionWidth(), scoreNumbers.getRegionHeight()
         );
     }
 
@@ -94,8 +78,8 @@ public class GameScreen extends ScreenAdapter {
         //up pipe position less pipe height less gap size.
         float downPipePosition = upPipePosition - 320 - 160;
 
-        Pipe upPipe = new Pipe(new Rectangle(game.screenWidth, upPipePosition, 64, 320), true, world);
-        Pipe downPipe = new Pipe(new Rectangle(game.screenWidth, downPipePosition, 64, 320), false, world);
+        Pipe upPipe = new Pipe(new Rectangle(game.screenWidth, upPipePosition, 64, 320), true);
+        Pipe downPipe = new Pipe(new Rectangle(game.screenWidth, downPipePosition, 64, 320), false);
 
         pipes.add(upPipe, downPipe);
 
@@ -115,7 +99,7 @@ public class GameScreen extends ScreenAdapter {
 
             pipe.update();
 
-            if (pipe.getPosition().x < -32) {
+            if (pipe.actualBounds.x < -32) {
                 pipesIterator.remove();
                 pipe.dispose();
             }
@@ -149,24 +133,11 @@ public class GameScreen extends ScreenAdapter {
 
         draw();
 
-        if (!game.isGameOver) {
+        if (!game.isGameOver)
             update(deltaTime);
-            doPhysicsTimeStep(deltaTime);
-        }
+
         else if (Gdx.input.isTouched())
             game.setScreen(new GameScreen());
-    }
-
-    private void doPhysicsTimeStep(float deltaTime) {
-
-        float frameTime = Math.min(deltaTime, 0.25f);
-
-        accumulator += frameTime;
-
-        while(accumulator >= TIME_STEP) {
-            world.step(TIME_STEP, 6,2);
-            accumulator -= TIME_STEP;
-        }
     }
 
     private void draw() {
@@ -175,7 +146,7 @@ public class GameScreen extends ScreenAdapter {
 
         batch.begin();
 
-        batch.draw(background, 1/PIXELS_PER_METER, 1/PIXELS_PER_METER, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+        batch.draw(background, 1, 1, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
 
         for (Pipe pipe : pipes)
             pipe.draw(batch);
@@ -189,17 +160,15 @@ public class GameScreen extends ScreenAdapter {
 
         if (score > 9) {
             batch.draw(
-                scoreNumbersUnits, scoreBounds.x + 25 / PIXELS_PER_METER,
+                scoreNumbersUnits, scoreBounds.x + 25,
                 scoreBounds.y, scoreBounds.width, scoreBounds.height
             );
         }
 
         if (game.isGameOver)
-            batch.draw(startGame, 1/PIXELS_PER_METER, 1/PIXELS_PER_METER, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+            batch.draw(startGame, 1, 1, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
 
         batch.end();
-
-//        debugRenderer.render(world, camera.combined);
     }
 
     @Override
@@ -212,9 +181,7 @@ public class GameScreen extends ScreenAdapter {
 
         player.dispose();
         background.dispose();
-        world.dispose();
         batch.dispose();
-        debugRenderer.dispose();
 
         scoreNumbers.getTexture().dispose();
         scoreNumbersUnits.getTexture().dispose();
