@@ -6,11 +6,11 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import knight.arkham.Space;
 
 public class Player extends GameObject {
     public static int score;
-    private boolean isGameOver;
     private float animationTimer;
     private final Animation<TextureRegion> flappingAnimation;
 
@@ -27,27 +27,40 @@ public class Player extends GameObject {
         flappingAnimation = makeAnimationByRegion(region, regionWidth, region.getRegionHeight());
     }
 
+    private Animation<TextureRegion> makeAnimationByRegion(TextureRegion region, int regionWidth, int regionHeight) {
+
+        Array<TextureRegion> animationFrames = new Array<>();
+
+        for (int i = 0; i < 3; i++)
+            animationFrames.add(new TextureRegion(region, i * regionWidth, 0, regionWidth, regionHeight));
+
+        return new Animation<>(0.1f, animationFrames);
+    }
+
     public void update(float deltaTime) {
 
         animationTimer += deltaTime;
 
         actualRegion = flappingAnimation.getKeyFrame(animationTimer, true);
 
-        if (!isGameOver && Gdx.input.justTouched()) {
+//        actualBounds.y -= 8;
+
+        if (Gdx.input.justTouched()) {
 
             actionSound.play();
-            applyLinealImpulse(new Vector2(0, 20));
+            actualBounds.y += 40;
         }
 
         if (actualBounds.y > 700)
             Space.INSTANCE.isGameOver = true;
     }
 
-    private void applyLinealImpulse(Vector2 impulseDirection) {
-//        body.applyLinearImpulse(impulseDirection, body.getWorldCenter(), true);
-    }
+    public void hasCollide(GameObject collisionObject){
 
-    public void hasCollide(){
-        isGameOver = true;
+        if (actualBounds.overlaps(collisionObject.actualBounds)) {
+
+            collisionObject.actionSound.play();
+            Space.INSTANCE.isGameOver = true;
+        }
     }
 }

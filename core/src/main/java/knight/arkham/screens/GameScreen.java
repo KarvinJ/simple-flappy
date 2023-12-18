@@ -99,6 +99,8 @@ public class GameScreen extends ScreenAdapter {
 
             pipe.update();
 
+            player.hasCollide(pipe);
+
             if (pipe.actualBounds.x < -64) {
                 pipesIterator.remove();
                 pipe.dispose();
@@ -107,6 +109,9 @@ public class GameScreen extends ScreenAdapter {
 
         floor.update(deltaTime);
         floor2.update(deltaTime);
+
+        player.hasCollide(floor);
+        player.hasCollide(floor2);
 
         stateTimer += deltaTime;
 
