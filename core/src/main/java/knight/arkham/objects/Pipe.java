@@ -8,9 +8,8 @@ public class Pipe extends GameObject {
         super(bounds, isRotated ? "pipe-green-180.png" :"pipe-green.png", "die.wav");
     }
 
-    public void update() {
-        actualBounds.x -= 1;
+    public void update(float deltaTime) {
 
-//        body.setLinearVelocity(-4 , 0);
+        actualBounds.x -= 150 * deltaTime;
     }
 }

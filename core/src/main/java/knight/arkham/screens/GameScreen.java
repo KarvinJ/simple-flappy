@@ -97,7 +97,7 @@ public class GameScreen extends ScreenAdapter {
 
             Pipe pipe = pipesIterator.next();
 
-            pipe.update();
+            pipe.update(deltaTime);
 
             player.hasCollide(pipe);
 
