@@ -43,12 +43,12 @@ public class Player extends GameObject {
 
         actualRegion = flappingAnimation.getKeyFrame(animationTimer, true);
 
-        actualBounds.y -= 150 * deltaTime;
+        actualBounds.y -= 130 * deltaTime;
 
         if (Gdx.input.justTouched()) {
 
             actionSound.play();
-            actualBounds.y += 6000 * deltaTime;
+            actualBounds.y += 4500 * deltaTime;
         }
 
         if (actualBounds.y > 700)
