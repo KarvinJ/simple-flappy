@@ -50,8 +50,8 @@ public class GameScreen extends ScreenAdapter {
 
         pipes = new Array<>();
 
-        floor = new Floor(new Rectangle(game.screenWidth/2f, 40, game.screenWidth, 80));
-        floor2 = new Floor(new Rectangle(game.screenWidth + 240, 40, game.screenWidth, 80));
+        floor = new Floor(new Rectangle(0, 0, game.screenWidth, 80));
+        floor2 = new Floor(new Rectangle(game.screenWidth, 0, game.screenWidth, 80));
 
         background = new Texture("images/background-day.png");
         startGame = new Texture("images/message.png");
@@ -73,7 +73,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void generatePipes() {
 
-        float upPipePosition = MathUtils.random(480, game.screenHeight + 80);
+        float upPipePosition = MathUtils.random(320, game.screenHeight-80);
 
         //up pipe position less pipe height less gap size.
         float downPipePosition = upPipePosition - 320 - 160;
@@ -99,14 +99,14 @@ public class GameScreen extends ScreenAdapter {
 
             pipe.update();
 
-            if (pipe.actualBounds.x < -32) {
+            if (pipe.actualBounds.x < -64) {
                 pipesIterator.remove();
                 pipe.dispose();
             }
         }
 
-        floor.update();
-        floor2.update();
+        floor.update(deltaTime);
+        floor2.update(deltaTime);
 
         stateTimer += deltaTime;
 

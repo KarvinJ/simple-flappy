@@ -9,6 +9,8 @@ public class Pipe extends GameObject {
     }
 
     public void update() {
+        actualBounds.x -= 1;
+
 //        body.setLinearVelocity(-4 , 0);
     }
 }

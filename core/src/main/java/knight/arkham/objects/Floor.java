@@ -1,7 +1,6 @@
 package knight.arkham.objects;
 
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 
 public class Floor extends GameObject {
 
@@ -9,15 +8,11 @@ public class Floor extends GameObject {
         super(bounds, "base.png", "die.wav");
     }
 
-    public void update() {
+    public void update(float deltaTime) {
 
-//        body.setLinearVelocity(-4 , 0);
+        actualBounds.x -= 150 * deltaTime;
 
-//        The parallax effect implemented with two floors
-        if (actualBounds.x < -230) {
-
-            Vector2 outScreenPosition = new Vector2(720, 40).scl(1/32f);
-//            body.setTransform(outScreenPosition, 0);
-        }
+        if (actualBounds.x <= -478)
+            actualBounds.setPosition(480, 0);
     }
 }
