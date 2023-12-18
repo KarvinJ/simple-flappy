@@ -16,7 +16,6 @@ import com.badlogic.gdx.utils.TimeUtils;
 import knight.arkham.Space;
 import knight.arkham.objects.*;
 import java.util.Iterator;
-import static knight.arkham.helpers.Constants.*;
 
 public class GameScreen extends ScreenAdapter {
     private final Space game;
@@ -62,7 +61,7 @@ public class GameScreen extends ScreenAdapter {
         scoreNumbersUnits = numbersAtlas.findRegion(String.valueOf(score));
 
         scoreBounds = new Rectangle(
-            FULL_SCREEN_WIDTH / 2f, 500, scoreNumbers.getRegionWidth(), scoreNumbers.getRegionHeight()
+            game.screenWidth / 2f, 500, scoreNumbers.getRegionWidth(), scoreNumbers.getRegionHeight()
         );
     }
 
@@ -151,7 +150,7 @@ public class GameScreen extends ScreenAdapter {
 
         batch.begin();
 
-        batch.draw(background, 1, 1, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+        batch.draw(background, 1, 1, game.screenWidth, game.screenHeight);
 
         for (Pipe pipe : pipes)
             pipe.draw(batch);
@@ -171,7 +170,7 @@ public class GameScreen extends ScreenAdapter {
         }
 
         if (game.isGameOver)
-            batch.draw(startGame, 1, 1, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+            batch.draw(startGame, 1, 1, game.screenWidth, game.screenHeight);
 
         batch.end();
     }
