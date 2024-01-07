@@ -12,7 +12,7 @@ public class Floor extends GameObject {
 
         actualBounds.x -= 150 * deltaTime;
 
-        if (actualBounds.x <= -478)
+        if (actualBounds.x <= -473)
             actualBounds.setPosition(480, 0);
     }
 }
