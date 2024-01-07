@@ -10,7 +10,6 @@ import com.badlogic.gdx.utils.Array;
 import knight.arkham.Space;
 
 public class Player extends GameObject {
-    public static int score;
     private float animationTimer;
     private final Animation<TextureRegion> flappingAnimation;
 

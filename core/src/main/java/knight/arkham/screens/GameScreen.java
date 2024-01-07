@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 import knight.arkham.Space;
+import knight.arkham.helpers.GameDataHelper;
 import knight.arkham.objects.*;
 import java.util.Iterator;
 
@@ -74,10 +75,11 @@ public class GameScreen extends ScreenAdapter {
 
         float upPipePosition = MathUtils.random(320, game.screenHeight-80);
 
-        //up pipe position less pipe height less gap size.
-        float downPipePosition = upPipePosition - 320 - 160;
-
         Pipe upPipe = new Pipe(new Rectangle(game.screenWidth, upPipePosition, 64, 320), true);
+
+        // gap size = 160.
+        float downPipePosition = upPipePosition - upPipe.actualBounds.height - 160;
+
         Pipe downPipe = new Pipe(new Rectangle(game.screenWidth, downPipePosition, 64, 320), false);
 
         pipes.add(upPipe, downPipe);
@@ -140,8 +142,10 @@ public class GameScreen extends ScreenAdapter {
         if (!game.isGameOver)
             update(deltaTime);
 
-        else if (Gdx.input.isTouched())
+        else if (Gdx.input.isTouched()) {
+            GameDataHelper.saveHighScore(score);
             game.setScreen(new GameScreen());
+        }
     }
 
     private void draw() {
@@ -150,7 +154,7 @@ public class GameScreen extends ScreenAdapter {
 
         batch.begin();
 
-        batch.draw(background, 1, 1, game.screenWidth, game.screenHeight);
+        batch.draw(background, 0, 0, game.screenWidth, game.screenHeight);
 
         for (Pipe pipe : pipes)
             pipe.draw(batch);

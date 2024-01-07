@@ -1,11 +1,12 @@
 package knight.arkham.objects;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
-import knight.arkham.helpers.AssetsHelper;
+
 
 public abstract class GameObject {
     public final Rectangle actualBounds;
@@ -15,7 +16,7 @@ public abstract class GameObject {
     protected GameObject(Rectangle bounds, String spritePath, String soundPath) {
         actualBounds = bounds;
         actualRegion = new TextureRegion(new Texture("images/" + spritePath));
-        actionSound = AssetsHelper.loadSound(soundPath);
+        actionSound = Gdx.audio.newSound(Gdx.files.internal("sounds/"+ soundPath));
     }
 
     public void draw(Batch batch) {
