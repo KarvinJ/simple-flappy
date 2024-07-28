@@ -193,7 +193,8 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void hide() {
-        dispose();
+//        Dispose fails in web build
+//        dispose();
     }
 
     @Override
