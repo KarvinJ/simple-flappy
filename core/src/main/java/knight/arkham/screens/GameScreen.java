@@ -2,6 +2,7 @@ package knight.arkham.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -16,9 +17,11 @@ import com.badlogic.gdx.utils.TimeUtils;
 import knight.arkham.Space;
 import knight.arkham.helpers.GameDataHelper;
 import knight.arkham.objects.*;
+
 import java.util.Iterator;
 
 public class GameScreen extends ScreenAdapter {
+
     private final Space game;
     private final OrthographicCamera camera;
     public SpriteBatch batch;
@@ -27,6 +30,7 @@ public class GameScreen extends ScreenAdapter {
     private final Array<Pipe> pipes;
     private final Floor floor;
     private final Floor floor2;
+    private final Floor floor3;
     private final TextureAtlas numbersAtlas;
     private TextureRegion scoreNumbers;
     private TextureRegion scoreNumbersUnits;
@@ -34,7 +38,7 @@ public class GameScreen extends ScreenAdapter {
     private final Texture startGame;
     private int score;
     private long lastPipeSpawnTime;
-    private float stateTimer;
+    private final Sound pointSound;
 
     public GameScreen() {
 
@@ -52,6 +56,7 @@ public class GameScreen extends ScreenAdapter {
 
         floor = new Floor(new Rectangle(0, 0, game.screenWidth, 80));
         floor2 = new Floor(new Rectangle(game.screenWidth, 0, game.screenWidth, 80));
+        floor3 = new Floor(new Rectangle(game.screenWidth, 0, game.screenWidth, 80));
 
         background = new Texture("images/background-day.png");
         startGame = new Texture("images/message.png");
@@ -64,6 +69,8 @@ public class GameScreen extends ScreenAdapter {
         scoreBounds = new Rectangle(
             game.screenWidth / 2f, 500, scoreNumbers.getRegionWidth(), scoreNumbers.getRegionHeight()
         );
+
+        pointSound = Gdx.audio.newSound(Gdx.files.internal("sounds/point.wav"));
     }
 
     @Override
@@ -73,12 +80,12 @@ public class GameScreen extends ScreenAdapter {
 
     private void generatePipes() {
 
-        float upPipePosition = MathUtils.random(320, game.screenHeight-80);
+        float upPipePosition = MathUtils.random(320, game.screenHeight - 120);
 
         Pipe upPipe = new Pipe(new Rectangle(game.screenWidth, upPipePosition, 64, 320), true);
 
-        // gap size = 160.
-        float downPipePosition = upPipePosition - upPipe.actualBounds.height - 160;
+        // gap size = 120.
+        float downPipePosition = upPipePosition - upPipe.actualBounds.height - 120;
 
         Pipe downPipe = new Pipe(new Rectangle(game.screenWidth, downPipePosition, 64, 320), false);
 
@@ -91,10 +98,10 @@ public class GameScreen extends ScreenAdapter {
 
         player.update(deltaTime);
 
-        if(TimeUtils.nanoTime() - lastPipeSpawnTime > 2000000000)
+        if (TimeUtils.nanoTime() - lastPipeSpawnTime > 2000000000)
             generatePipes();
 
-        for (Iterator<Pipe> pipesIterator = pipes.iterator(); pipesIterator.hasNext();) {
+        for (Iterator<Pipe> pipesIterator = pipes.iterator(); pipesIterator.hasNext(); ) {
 
             Pipe pipe = pipesIterator.next();
 
@@ -102,7 +109,19 @@ public class GameScreen extends ScreenAdapter {
 
             player.hasCollide(pipe);
 
+            if (!pipe.isBehind && pipe.actualBounds.x < player.actualBounds.x) {
+
+                pipe.isBehind = true;
+
+                if (pipe.actualBounds.y < player.actualBounds.y) {
+
+                    score++;
+                    pointSound.play();
+                }
+            }
+
             if (pipe.actualBounds.x < -64) {
+
                 pipesIterator.remove();
                 pipe.dispose();
             }
@@ -114,21 +133,12 @@ public class GameScreen extends ScreenAdapter {
         player.hasCollide(floor);
         player.hasCollide(floor2);
 
-        stateTimer += deltaTime;
+        if (score < 10)
+            scoreNumbers = numbersAtlas.findRegion(String.valueOf(score));
+        else {
 
-        if (stateTimer > 2) {
-
-            stateTimer = 0;
-
-            score++;
-
-            if (score < 10)
-                scoreNumbers = numbersAtlas.findRegion(String.valueOf(score));
-
-            else {
-                scoreNumbers = numbersAtlas.findRegion(String.valueOf(Integer.parseInt(("" + score).substring(0, 1))));
-                scoreNumbersUnits = numbersAtlas.findRegion(String.valueOf(Integer.parseInt(("" + score).substring(1, 2))));
-            }
+            scoreNumbers = numbersAtlas.findRegion(String.valueOf(Integer.parseInt(("" + score).substring(0, 1))));
+            scoreNumbersUnits = numbersAtlas.findRegion(String.valueOf(Integer.parseInt(("" + score).substring(1, 2))));
         }
     }
 
@@ -137,15 +147,16 @@ public class GameScreen extends ScreenAdapter {
 
         ScreenUtils.clear(0, 0, 0, 0);
 
-        draw();
-
         if (!game.isGameOver)
             update(deltaTime);
 
         else if (Gdx.input.isTouched()) {
+
             GameDataHelper.saveHighScore(score);
             game.setScreen(new GameScreen());
         }
+
+        draw();
     }
 
     private void draw() {
@@ -159,6 +170,7 @@ public class GameScreen extends ScreenAdapter {
         for (Pipe pipe : pipes)
             pipe.draw(batch);
 
+        floor3.draw(batch);
         floor.draw(batch);
         floor2.draw(batch);
 

@@ -10,8 +10,10 @@ import com.badlogic.gdx.utils.Array;
 import knight.arkham.Space;
 
 public class Player extends GameObject {
+
     private float animationTimer;
     private final Animation<TextureRegion> flappingAnimation;
+    private float gravity = 0;
 
     public Player(Vector2 position) {
         super(
@@ -42,12 +44,13 @@ public class Player extends GameObject {
 
         actualRegion = flappingAnimation.getKeyFrame(animationTimer, true);
 
-        actualBounds.y -= 160 * deltaTime;
+        actualBounds.y += gravity * deltaTime;
+        gravity += -400 * deltaTime;
 
         if (Gdx.input.justTouched()) {
 
             actionSound.play();
-            actualBounds.y += 3500 * deltaTime;
+            gravity = 10000 * deltaTime;
         }
 
         if (actualBounds.y > 700)

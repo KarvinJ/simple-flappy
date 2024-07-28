@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import knight.arkham.screens.GameScreen;
 
 public class Space extends Game {
+
     public static Space INSTANCE;
     public OrthographicCamera camera;
     public Viewport viewport;

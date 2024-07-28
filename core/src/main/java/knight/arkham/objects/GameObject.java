@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 
 public abstract class GameObject {
+
     public final Rectangle actualBounds;
     protected TextureRegion actualRegion;
     protected final Sound actionSound;

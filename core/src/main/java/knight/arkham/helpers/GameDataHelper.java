@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 
 public class GameDataHelper {
+
     private static final String dataFilename = "flappy-simple";
 
     public static void saveHighScore(int score){
