@@ -4,7 +4,9 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath 'org.gretty:gretty:3.1.0'
+    classpath 'org.gretty:gretty:3.1.5'
+    classpath "org.docstr:gwt-gradle-plugin:$gwtPluginVersion"
+
   }
 }
 apply plugin: "gwt"
@@ -17,38 +19,33 @@ gwt {
   minHeapSize = '1G'
 
   src = files(file('src/main/java')) // Needs to be in front of "modules" below.
-  modules 'knight.arkham.GdxDefinition'
-  devModules 'knight.arkham.GdxDefinitionSuperdev'
+  modules 'knight.nameless.GdxDefinition'
+  devModules 'knight.nameless.GdxDefinitionSuperdev'
   project.webAppDirName = 'webapp'
 
   compiler.strict = true
   compiler.disableCastChecking = true
   //// The next line can be useful to uncomment if you want output that hasn't been obfuscated.
-//  compiler.style = org.wisepersist.gradle.plugins.gwt.Style.DETAILED
+//  compiler.style = org.docstr.gradle.plugins.gwt.Style.DETAILED
+
+  sourceLevel = 1.11
 }
 
 dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-  implementation "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion"
-  implementation "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
-  implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
   implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
   implementation project(':core')
 
-//// You can use the lines below instead of the "com.badlogicgames.gdx:gdx-backend-gwt" dependencies.
-//// If you do, follow the steps at https://github.com/tommyettinger/gdx-backends#gwt-2902100-support
-//// and you can use GWT 2.10.0, which gives you access to Java 11 language features.
-//// These releases use libGDX 1.11.0, and are not compatible with other versions.
-//	implementation "com.github.tommyettinger:gdx-backend-gwt:1.1100.0"
-//	implementation "com.github.tommyettinger:gdx-backend-gwt:1.1100.0:sources"
 }
 
+import org.akhikhl.gretty.AppAfterIntegrationTestTask
 import org.akhikhl.gretty.AppBeforeIntegrationTestTask
-import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
+import org.docstr.gradle.plugins.gwt.GwtSuperDev
 
 gretty.httpPort = 8080
-gretty.resourceBase = project.buildDir.path + "/gwt/draftOut"
+// The line below will need to be changed only if you change the build directory to something other than "build".
+gretty.resourceBase = "${project.layout.buildDirectory.asFile.get().absolutePath}/gwt/draftOut"
 gretty.contextPath = "/"
 gretty.portPropertiesFileName = "TEMP_PORTS.properties"
 
@@ -64,6 +61,7 @@ task startHttpServer (dependsOn: [draftCompileGwt]) {
     }
   }
 }
+
 task beforeRun(type: AppBeforeIntegrationTestTask, dependsOn: startHttpServer) {
   // The next line allows ports to be reused instead of
   // needing a process to be manually terminated.
@@ -76,10 +74,26 @@ task beforeRun(type: AppBeforeIntegrationTestTask, dependsOn: startHttpServer) {
   interactive false
 }
 
-task superDev(type: GwtSuperDev) {
+task afterRun(type: AppAfterIntegrationTestTask) {
+  doFirst {
+    println("\nCLOSING SUPERDEV\n")
+    println("Now closing down the GWT app's processes.")
+    println("This may print *harmless* failure messages.")
+  }
+  doLast {
+    // This forces all threads to stop immediately, which is not ideal, but
+    // it is better than leaving some thread running and occupying a port that
+    // we will need on a later run of superDev . If you have a better way to close
+    // all Gretty's threads from Gradle, please post a GitHub issue for gdx-liftoff!
+    System.exit(0)
+  }
+}
+
+task superDev(type: GwtSuperDev, dependsOn: beforeRun) {
   doFirst {
     gwt.modules = gwt.devModules
   }
+  finalizedBy("afterRun")
 }
 
 //// We delete the (temporary) war/ folder because if any extra files get into it, problems occur.
@@ -135,13 +149,15 @@ task dist(dependsOn: [clean, compileGwt]) {
 task addSource {
   doLast {
     sourceSets.main.compileClasspath += files(project(':core').sourceSets.main.allJava.srcDirs)
-    
+    sourceSets.main.compileClasspath += files("../core/build/generated/sources/annotationProcessor/java/main")
+
   }
 }
 
 task distZip(type: Zip, dependsOn: dist){
   //// This uses the output of the dist task, which removes the superdev button from index.html .
   from(outputPath)
+  archiveVersion = projectVersion
   archiveBaseName.set("${appName}-dist")
   //// The result will be in html/build/ with a name containing "-dist".
   destinationDirectory.set(file("build"))
@@ -151,8 +167,8 @@ tasks.compileGwt.dependsOn(addSource)
 tasks.draftCompileGwt.dependsOn(addSource)
 tasks.checkGwt.dependsOn(addSource)
 
-// You can change the version below to JavaVersion.VERSION_11 if you use the 2.9.0 or 2.10.0 backends.
-sourceCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_11
+java.targetCompatibility = JavaVersion.VERSION_11
 sourceSets.main.java.srcDirs = [ "src/main/java/" ]
 
 eclipse.project.name = appName + "-html"
